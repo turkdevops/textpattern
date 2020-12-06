@@ -343,6 +343,13 @@
         "html": "yesnoradio",
         "position": "60"
     },
+    "override_form_types": {
+        "val": "article",
+        "type": "0",
+        "event": "publish",
+        "html": "overrideTypes",
+        "position": "70"
+    },
     "attach_titles_to_permalinks": {
         "val": "1",
         "type": "0",
@@ -554,7 +561,7 @@
         "position": "0"
     },
     "version": {
-        "val": "4.8.2",
+        "val": "4.8.4",
         "type": "2",
         "event": "publish",
         "html": "text_input",

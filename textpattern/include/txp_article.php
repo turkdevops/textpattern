@@ -1191,17 +1191,6 @@ function tab($tabevent, $view, $tag = 'li')
 }
 
 /**
- * Gets the name of the default section.
- *
- * @return string The section
- */
-
-function getDefaultSection()
-{
-    return get_pref('default_section');
-}
-
-/**
  * Renders 'override form' field.
  *
  * @param  string $form    The selected form
@@ -1215,7 +1204,9 @@ function form_pop($form, $id, $section)
     global $txp_sections;
 
     $skinforms = array();
-    $rs = safe_rows('skin, name', 'txp_form', "type = 'article' AND name != 'default' ORDER BY name");
+    $form_types = get_pref('override_form_types');
+
+    $rs = safe_rows('skin, name, type', 'txp_form', "type IN (".implode(",", quote_list(do_list($form_types))).") AND name != 'default' ORDER BY type,name");
 
     foreach ($txp_sections as $name => $row) {
         $skin = $row['skin'];
@@ -2189,7 +2180,7 @@ function article_validate($rs, &$msg)
     if ($prefs['allow_form_override']) {
         $constraints['override_form'] = new FormConstraint(
             $rs['override_form'],
-            array('type' => 'article')
+            array('type' => get_pref('override_form_types'))
         );
     } else {
         $constraints['override_form'] = new BlankConstraint(
