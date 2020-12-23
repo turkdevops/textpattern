@@ -1,6 +1,7 @@
 # Textpattern CMS
 
 [![Crowdin](https://badges.crowdin.net/textpattern-cms-textpacks/localized.svg)](https://crowdin.com/project/textpattern-cms-textpacks)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/textpattern)](https://github.com/sponsors/textpattern)
 
 [![Textpattern Logo](https://textpattern.com/assets/img/branding/carver/carver-64px.svg)](https://textpattern.com/)
 
@@ -16,7 +17,7 @@
 * [Thank you](#thank-you)
 * [Legal](#legal)
 
-![Textpattern CMS screenshots](https://textpattern.com/assets/img/com/readme-device-screens.jpg)
+![Textpattern CMS screenshots](https://textpattern.com/assets/img/com/readme-device-screens.png)
 
 ## System requirements
 
@@ -146,6 +147,10 @@ Thank you to our [GitHub monthly sponsors](https://github.com/sponsors/textpatte
 
 We are grateful to [DigitalOcean](https://www.digitalocean.com/?utm_source=opensource&utm_campaign=textpattern), [BrowserStack](https://www.browserstack.com) and [1Password](https://1password.com) for their kind considerations in supporting Textpattern CMS development by way of web hosting infrastructure (DigitalOcean), cross-browser testing platform (BrowserStack) and secure password management (1Password). Thank you!
 
+This project is supported by:
+
+<a href="https://www.digitalocean.com/?utm_source=opensource&utm_campaign=textpattern"><img src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/SVG/DO_Logo_horizontal_blue.svg" width="201px"></a>
+
 ## Legal
 
 Released under the GNU General Public License. See [LICENSE.txt](https://github.com/textpattern/textpattern/blob/main/LICENSE.txt) for terms and conditions.
@@ -154,4 +159,4 @@ Includes contributions licensed under the GNU Lesser General Public License. See
 
 Includes contributions licensed under the New BSD License. See [LICENSE-BSD-3.txt](https://github.com/textpattern/textpattern/blob/main/textpattern/lib/LICENSE-BSD-3.txt) for terms and conditions.
 
-![Textpattern CMS blogging illustration](https://textpattern.com/assets/img/com/readme-footer.jpg)
+![Textpattern CMS blogging illustration](https://textpattern.com/assets/img/com/readme-footer.png)
