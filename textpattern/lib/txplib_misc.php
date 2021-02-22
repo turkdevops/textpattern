@@ -4117,7 +4117,8 @@ function buildTimeSql($month, $time, $field = 'Posted')
                 list($start, $stop) = array($stop, $start);
             }
 
-            $timeq = ($start == $stop ?
+            $timeq = (
+                $start == $stop ?
                 "$safe_field = FROM_UNIXTIME($start)" :
                 "$safe_field BETWEEN FROM_UNIXTIME($start) AND FROM_UNIXTIME($stop)"
             );
@@ -4576,7 +4577,8 @@ function permlinkurl($article_array, $hu = hu)
     }
 
     if (isset($permlinks[$thisid])) {
-        return $hu.($permlinks[$thisid] === true ?
+        return $hu.(
+            $permlinks[$thisid] === true ?
             'index.php'.join_qs(array('id' => $thisid) + $keys) :
             $permlinks[$thisid].join_qs($keys)
         );
@@ -4590,7 +4592,8 @@ function permlinkurl($article_array, $hu = hu)
         !empty($expires) &&
         $production_status != 'live' &&
         txpinterface == 'public' &&
-        (is_numeric($expires) ? $expires < time()
+        (
+            is_numeric($expires) ? $expires < time()
             : (isset($uexpires) ? $uexpires < time()
             : $expires < $now)
         )

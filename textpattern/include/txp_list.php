@@ -145,7 +145,8 @@ function list_list($message = '', $post = '')
 
     $switch_dir = ($dir == 'desc') ? 'asc' : 'desc';
 
-    $search = new Filter($event,
+    $search = new Filter(
+        $event,
         array(
             'id' => array(
                 'column' => 'textpattern.ID',
@@ -222,7 +223,8 @@ function list_list($message = '', $post = '')
     $searchBlock =
         n.tag(
             $search->renderForm('list', $search_render_options),
-            'div', array(
+            'div',
+            array(
                 'class' => 'txp-layout-4col-3span',
                 'id'    => $event.'_control',
             )
@@ -234,7 +236,8 @@ function list_list($message = '', $post = '')
         $createBlock[] =
             n.tag(
                 sLink('article', '', gTxt('create_article'), 'txp-button'),
-                'div', array('class' => 'txp-control-panel')
+                'div',
+                array('class' => 'txp-control-panel')
             );
     }
 
@@ -303,7 +306,8 @@ function list_list($message = '', $post = '')
 
             $head_row = hCell(
                 fInput('checkbox', 'select_all', 0, '', '', '', '', '', 'select_all'),
-                    '', 'class="txp-list-col-multi-edit" scope="col" title="'.gTxt('toggle_all_selected').'"'
+                '',
+                'class="txp-list-col-multi-edit" scope="col" title="'.gTxt('toggle_all_selected').'"'
             ).column_head(array(
                 'options' => array('class' => trim('txp-list-col-id'.('id' == $sort ? " $dir" : ''))),
                 'value' => 'ID',
@@ -406,7 +410,9 @@ function list_list($message = '', $post = '')
                             or ($isUnpublished and $AuthorID === $txp_user and has_privs('article.edit.own')))
                         ? fInput('checkbox', 'selected[]', $ID, 'checkbox')
                         : ''
-                        ), '', 'txp-list-col-multi-edit'
+                        ),
+                        '',
+                        'txp-list-col-multi-edit'
                     ).
                     hCell(
                         eLink('article', 'edit', 'ID', $ID, $ID),
@@ -417,32 +423,49 @@ function list_list($message = '', $post = '')
                         )
                     ).
                     td(
-                        $Title, '', 'txp-list-col-title'
+                        $Title,
+                        '',
+                        'txp-list-col-title'
                     ).
                     td(
-                        gTime($posted), '', 'txp-list-col-posted date'.($posted < time() ? '' : ' unpublished')
+                        gTime($posted),
+                        '',
+                        'txp-list-col-posted date'.($posted < time() ? '' : ' unpublished')
                     ).
                     td(
-                        gTime($lastmod), '', 'txp-list-col-lastmod date'.($posted === $lastmod ? ' not-modified' : '')
+                        gTime($lastmod),
+                        '',
+                        'txp-list-col-lastmod date'.($posted === $lastmod ? ' not-modified' : '')
                     ).
                     td(
-                        ($expires ? gTime($expires) : ''), '', 'txp-list-col-expires date'
+                        ($expires ? gTime($expires) : ''),
+                        '',
+                        'txp-list-col-expires date'
                     ).
                     td(
-                        span(txpspecialchars($section_title), array('title' => $Section)), '', 'txp-list-col-section'.$vs
+                        span(txpspecialchars($section_title), array('title' => $Section)),
+                        '',
+                        'txp-list-col-section'.$vs
                     ).
                     td(
-                        $Category1, '', 'txp-list-col-category1 category'.$vc[1]
+                        $Category1,
+                        '',
+                        'txp-list-col-category1 category'.$vc[1]
                     ).
                     td(
-                        $Category2, '', 'txp-list-col-category2 category'.$vc[2]
+                        $Category2,
+                        '',
+                        'txp-list-col-category2 category'.$vc[2]
                     ).
-                    td($view_url ?
+                    td(
+                        $view_url ?
                         href($Status, $view_url, join_atts(array(
                             'rel'    => 'noopener',
                             'target' => '_blank',
                             'title'  => gTxt('view'),
-                        ), TEXTPATTERN_STRIP_EMPTY)) : $Status, '', 'txp-list-col-status'
+                        ), TEXTPATTERN_STRIP_EMPTY)) : $Status,
+                        '',
+                        'txp-list-col-status'
                     ).
                     (
                         $show_authors

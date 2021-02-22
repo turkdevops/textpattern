@@ -814,7 +814,8 @@ function tpt_link($atts)
     }
 
     return tag(
-        $escape ? txp_escape(array('escape' => $escape), $rs['linkname']) : $rs['linkname'], 'a',
+        $escape ? txp_escape(array('escape' => $escape), $rs['linkname']) : $rs['linkname'],
+        'a',
         ($rel ? ' rel="'.txpspecialchars($rel).'"' : '').
         ' href="'.txpspecialchars($rs['url']).'"'
     );
@@ -835,7 +836,8 @@ function linkdesctitle($atts)
         : '';
 
     return tag(
-        $escape ? txp_escape(array('escape' => $escape), $thislink['linkname']) : $thislink['linkname'], 'a',
+        $escape ? txp_escape(array('escape' => $escape), $thislink['linkname']) : $thislink['linkname'],
+        'a',
         ($rel ? ' rel="'.txpspecialchars($rel).'"' : '').
         ' href="'.doSpecial($thislink['url']).'"'.$description
     );
@@ -1167,7 +1169,7 @@ function related_articles($atts, $thing = null)
             case 'category':
             case 'category1':
             case 'category2':
-                foreach(($cf == 'category' ? array('category1', 'category2') : array($cf)) as $cat) {
+                foreach (($cf == 'category' ? array('category1', 'category2') : array($cf)) as $cat) {
                     if (!empty($thisarticle[$cat])) {
                         $cats[] = $thisarticle[$cat];
                     }
@@ -1402,7 +1404,9 @@ function category_list($atts, $thing = null)
 
             if (!isset($thing) && !$form) {
                 extract($thiscategory);
-                $out[] = tag(txpspecialchars($title), 'a',
+                $out[] = tag(
+                    txpspecialchars($title),
+                    'a',
                     (($active_class && (0 == strcasecmp($c, $name))) ? ' class="'.txpspecialchars($active_class).'"' : '').
                     ' href="'.pagelinkurl(array(
                         's'       => $section,
@@ -1538,7 +1542,9 @@ function section_list($atts, $thing = null)
             if ($form === '' && $thing === null) {
                 $url = pagelinkurl(array('s' => $name));
 
-                $out[] = tag(txpspecialchars($title), 'a',
+                $out[] = tag(
+                    txpspecialchars($title),
+                    'a',
                     (($active_class && (0 == strcasecmp($s, $name))) ? ' class="'.txpspecialchars($active_class).'"' : '').
                     ' href="'.$url.'"'
                 );
@@ -5249,7 +5255,8 @@ function txp_eval($atts, $thing = null)
         }
 
         if ($functions) {
-            $query = preg_replace_callback('/\b('.$functions.')\s*\(\s*(\)?)/',
+            $query = preg_replace_callback(
+                '/\b('.$functions.')\s*\(\s*(\)?)/',
                 function ($match) {
                     global $prefs;
                     $function = empty($prefs['_txp_evaluate_functions'][$match[1]]) ? $match[1] : $prefs['_txp_evaluate_functions'][$match[1]];
@@ -5353,7 +5360,8 @@ function txp_escape($atts, $thing = '')
                         }, $thing) :
                         $thing;
                 } else {
-                    $value = floatval($tidy ?
+                    $value = floatval(
+                        $tidy ?
                         filter_var($thing, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION) :
                         $thing
                     );
