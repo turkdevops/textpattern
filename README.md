@@ -1,5 +1,6 @@
 # Textpattern CMS
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb724bc8ef3b400c9d9254453b1e4723)](https://app.codacy.com/gh/turkdevops/textpattern?utm_source=github.com&utm_medium=referral&utm_content=turkdevops/textpattern&utm_campaign=Badge_Grade)
 [![Crowdin](https://badges.crowdin.net/textpattern-cms-textpacks/localized.svg)](https://crowdin.com/project/textpattern-cms-textpacks)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/textpattern)](https://github.com/sponsors/textpattern)
 [![Known Vulnerabilities](https://snyk.io/test/github/textpattern/textpattern/badge.svg?targetFile=package.json)](https://snyk.io/test/github/textpattern/textpattern?targetFile=package.json)
