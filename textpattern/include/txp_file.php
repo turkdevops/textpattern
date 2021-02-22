@@ -45,7 +45,7 @@ $levels = array(
 );
 
 global $file_statuses;
-$file_statuses = status_list(true, array(STATUS_DRAFT, STATUS_STICKY));
+$file_statuses = status_group('files', true);
 
 if ($event == 'file') {
     require_privs('file');
@@ -669,7 +669,7 @@ function file_edit($message = '', $id = '')
             $permissions = '-1';
         }
 
-        if (!has_privs('file.publish') && $status >= STATUS_LIVE) {
+        if (!has_privs('file.publish') && has_status_group($status, 'published')) {
             $status = STATUS_PENDING;
         }
 

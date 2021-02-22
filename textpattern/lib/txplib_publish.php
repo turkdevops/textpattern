@@ -958,7 +958,7 @@ function filterAtts($atts = null, $iscustom = null)
     }
 
     if ($q && $searchsticky) {
-        $statusq = " AND Status >= ".STATUS_LIVE;
+        $statusq = " AND Status IN (".implode(',', array_keys(status_group('published', false))).")";
     } else {
         $statusq = " AND Status IN (".implode(',', $status).")";
     }

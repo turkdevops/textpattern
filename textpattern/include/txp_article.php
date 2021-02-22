@@ -162,23 +162,6 @@ function article_save()
             UNIX_TIMESTAMP(Posted) AS sPosted,
             UNIX_TIMESTAMP(Expires) AS sExpires",
             'textpattern', "ID = ".(int) $incoming['ID']);
-
-        if (!($oldArticle['Status'] >= STATUS_LIVE && has_privs('article.edit.published')
-            || $oldArticle['Status'] >= STATUS_LIVE && $oldArticle['AuthorID'] === $txp_user && has_privs('article.edit.own.published')
-            || $oldArticle['Status'] < STATUS_LIVE && has_privs('article.edit')
-            || $oldArticle['Status'] < STATUS_LIVE && $oldArticle['AuthorID'] === $txp_user && has_privs('article.edit.own'))) {
-            // Not allowed, you silly rabbit, you shouldn't even be here.
-            // Show default editing screen.
-            article_edit();
-
-            return;
-        }
-
-        if ($oldArticle['sLastMod'] != $incoming['sLastMod']) {
-            article_edit(array(gTxt('concurrent_edit_by', array('{author}' => txpspecialchars($oldArticle['LastModID']))), E_ERROR), true, true);
-
-            return;
-        }
     } else {
         $oldArticle = array('Status' => STATUS_PENDING,
             'url_title'       => '',
@@ -192,6 +175,26 @@ function article_save()
         );
     }
 
+    $wasPublished = has_status_group($oldArticle['Status'], 'published');
+    $wasUnpublished = has_status_group($oldArticle['Status'], 'unpublished');
+
+    if (!(($wasPublished && has_privs('article.edit.published'))
+        || ($wasPublished && $oldArticle['AuthorID'] === $txp_user && has_privs('article.edit.own.published'))
+        || ($wasUnpublished && has_privs('article.edit'))
+        || ($wasUnpublished && $oldArticle['AuthorID'] === $txp_user && has_privs('article.edit.own')))) {
+        // Not allowed, you silly rabbit, you shouldn't even be here.
+        // Show default editing screen.
+        article_edit();
+
+        return;
+    }
+
+    if ($oldArticle['sLastMod'] != $incoming['sLastMod']) {
+        article_edit(array(gTxt('concurrent_edit_by', array('{author}' => txpspecialchars($oldArticle['LastModID']))), E_ERROR), true, true);
+
+        return;
+    }
+
     if (!has_privs('article.set_markup')) {
         $incoming['textile_body'] = $oldArticle['textile_body'];
         $incoming['textile_excerpt'] = $oldArticle['textile_excerpt'];
@@ -203,7 +206,7 @@ function article_save()
     $ID = intval($ID);
     $Status = assert_int($Status);
 
-    if (!has_privs('article.publish') && $Status >= STATUS_LIVE) {
+    if (!has_privs('article.publish') && has_status_group($Status, 'published')) {
         $Status = STATUS_PENDING;
     }
 
@@ -282,7 +285,7 @@ function article_save()
     // Auto-update custom-titles according to Title, as long as unpublished and
     // NOT customised.
     if (empty($url_title)
-        || (($oldArticle['Status'] < STATUS_LIVE)
+        || (($wasUnpublished)
         && ($oldArticle['url_title'] === $url_title)
         && ($oldArticle['Title'] !== $Title)
         && ($oldArticle['url_title'] === stripSpace($oldArticle['Title'], 1))
@@ -348,12 +351,14 @@ function article_save()
                 );
             }
 
-            if ($Status >= STATUS_LIVE) {
-                if ($oldArticle['Status'] < STATUS_LIVE) {
-                    do_pings();
-                } else {
-                    update_lastmod($ID ? 'article_saved' : 'article_posted', $rs);
-                }
+            $isNowPublished = has_status_group($Status, 'published');
+
+            if ($isNowPublished && $wasUnpublished) {
+                do_pings();
+            }
+
+            if ($isNowPublished || $wasPublished) {
+                update_lastmod($ID ? 'article_saved' : 'article_posted', $rs);
             }
 
             now('posted', true);
@@ -759,7 +764,7 @@ function article_edit($message = '', $concurrent = false, $refresh_partials = fa
         $response[] = announce($message);
         $response[] = '$("#article_form [type=submit]").val(textpattern.gTxt("save"))';
 
-        if ($Status < STATUS_LIVE) {
+        if (has_status_group($Status, 'unpublished')) {
             $response[] = '$("#article_form").addClass("saved").removeClass("published")';
         } else {
             $response[] = '$("#article_form").addClass("published").removeClass("saved")';
@@ -784,7 +789,7 @@ function article_edit($message = '', $concurrent = false, $refresh_partials = fa
 
     $class = array('async');
 
-    if ($Status >= STATUS_LIVE) {
+    if (has_status_group($Status, 'published')) {
         $class[] = 'published';
     } elseif ($ID) {
         $class[] = 'saved';
@@ -834,7 +839,7 @@ function article_edit($message = '', $concurrent = false, $refresh_partials = fa
 
     // 'Publish/Save' button.
     if (empty($ID)) {
-        if (has_privs('article.publish') && get_pref('default_publish_status', STATUS_LIVE) >= STATUS_LIVE) {
+        if (has_privs('article.publish') && has_status_group(get_pref('default_publish_status', STATUS_LIVE), 'published')) {
             $push_button = fInput('submit', 'publish', gTxt('publish'), 'publish');
         } else {
             $push_button = fInput('submit', 'publish', gTxt('save'), 'publish');
@@ -842,10 +847,10 @@ function article_edit($message = '', $concurrent = false, $refresh_partials = fa
 
         echo graf('<span class="txp-save-button">'.$push_button.'</span>', array('class' => 'txp-save'));
     } elseif (
-        ($Status >= STATUS_LIVE && has_privs('article.edit.published')) ||
-        ($Status >= STATUS_LIVE && $AuthorID === $txp_user && has_privs('article.edit.own.published')) ||
-        ($Status < STATUS_LIVE && has_privs('article.edit')) ||
-        ($Status < STATUS_LIVE && $AuthorID === $txp_user && has_privs('article.edit.own'))
+        (($isPublished = has_status_group($Status, 'published')) && has_privs('article.edit.published')) ||
+        ($isPublished && $AuthorID === $txp_user && has_privs('article.edit.own.published')) ||
+        (($isUnpublished = has_status_group($Status, 'unpublished')) && has_privs('article.edit')) ||
+        ($isUnpublished && $AuthorID === $txp_user && has_privs('article.edit.own'))
     ) {
         echo graf('<span class="txp-save-button">'.fInput('submit', 'save', gTxt('save'), 'publish').'</span>', array('class' => 'txp-save'));
     }
@@ -1662,7 +1667,7 @@ function article_partial_article_view($rs)
 {
     extract($rs);
 
-    if ($Status != STATUS_LIVE and $Status != STATUS_STICKY) {
+    if (has_status_group($Status, 'unpublished')) {
         if (!has_privs('article.preview')) {
             return;
         }

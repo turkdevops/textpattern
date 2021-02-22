@@ -646,9 +646,9 @@ function preText($store, $prefs = null)
     if (!$is_404 && $id && $out['s'] !== 'file_download') {
         if (empty($thisarticle)) {
             $a = safe_row(
-                "*, UNIX_TIMESTAMP(Posted) AS uPosted, UNIX_TIMESTAMP(Expires) AS uExpires, UNIX_TIMESTAMP(LastMod) AS uLastMod",
-                'textpattern',
-                "ID = $id".(gps('txpreview') ? '' : " AND Status IN (".STATUS_LIVE.",".STATUS_STICKY.")")
+            "*, UNIX_TIMESTAMP(Posted) AS uPosted, UNIX_TIMESTAMP(Expires) AS uExpires, UNIX_TIMESTAMP(LastMod) AS uLastMod",
+            'textpattern',
+            "ID = $id".(gps('txpreview') ? '' : " AND Status IN (".implode(',', array_keys(status_group('published', false))).")")
             );
 
             if ($a) {

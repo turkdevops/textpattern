@@ -365,7 +365,7 @@ function list_list($message = '', $post = '')
                 $Category1 = ($Category1) ? span(txpspecialchars($category1_title), array('title' => $Category1)) : '';
                 $Category2 = ($Category2) ? span(txpspecialchars($category2_title), array('title' => $Category2)) : '';
 
-                if ($Status != STATUS_LIVE and $Status != STATUS_STICKY) {
+                if (has_status_group($Status, 'unpublished')) {
                     $view_url = $can_preview ? '?txpreview='.intval($ID).'.'.time() : '';
                 } else {
                     $view_url = permlinkurl($a);
@@ -404,12 +404,10 @@ function list_list($message = '', $post = '')
                 $contentBlock .= tr(
                     td(
                         (
-                            (
-                                ($a['Status'] >= STATUS_LIVE and has_privs('article.edit.published'))
-                                or ($a['Status'] >= STATUS_LIVE and $AuthorID === $txp_user and has_privs('article.edit.own.published'))
-                                or ($a['Status'] < STATUS_LIVE and has_privs('article.edit'))
-                                or ($a['Status'] < STATUS_LIVE and $AuthorID === $txp_user and has_privs('article.edit.own'))
-                            )
+                            ((($isPublished = has_status_group($a['Status'], 'published')) and has_privs('article.edit.published'))
+                            or ($isPublished and $AuthorID === $txp_user and has_privs('article.edit.own.published'))
+                            or (($isUnpublished = has_status_group($a['Status'], 'unpublished')) and has_privs('article.edit'))
+                            or ($isUnpublished and $AuthorID === $txp_user and has_privs('article.edit.own')))
                         ? fInput('checkbox', 'selected[]', $ID, 'checkbox')
                         : ''
                         ), '', 'txp-list-col-multi-edit'
@@ -663,7 +661,7 @@ function list_multi_edit()
                 $field = 'Status';
             }
 
-            if (!has_privs('article.publish') && $value >= STATUS_LIVE) {
+            if (!has_privs('article.publish') && has_status_group($value, 'published')) {
                 $value = STATUS_PENDING;
             }
             break;
@@ -679,10 +677,10 @@ function list_multi_edit()
 
     foreach ($selected as $item) {
         if (
-            ($item['Status'] >= STATUS_LIVE && has_privs('article.edit.published')) ||
-            ($item['Status'] >= STATUS_LIVE && $item['AuthorID'] === $txp_user && has_privs('article.edit.own.published')) ||
-            ($item['Status'] < STATUS_LIVE && has_privs('article.edit')) ||
-            ($item['Status'] < STATUS_LIVE && $item['AuthorID'] === $txp_user && has_privs('article.edit.own'))
+            (($isPublished = has_status_group($item['Status'], 'published')) && has_privs('article.edit.published')) ||
+            ($isPublished && $item['AuthorID'] === $txp_user && has_privs('article.edit.own.published')) ||
+            (($isUnpublished = has_status_group($item['Status'], 'unpublished')) && has_privs('article.edit')) ||
+            ($isUnpublished && $item['AuthorID'] === $txp_user && has_privs('article.edit.own'))
         ) {
             $allowed[] = $item['ID'];
         }
@@ -703,7 +701,7 @@ function list_multi_edit()
                     $a['uid'] = md5(uniqid(rand(), true));
                     $a['AuthorID'] = $txp_user;
                     $a['LastModID'] = $txp_user;
-                    $a['Status'] = ($a['Status'] >= STATUS_LIVE) ? STATUS_DRAFT : $a['Status'];
+                    $a['Status'] = (has_status_group($a['Status'], 'published')) ? STATUS_DRAFT : $a['Status'];
 
                     foreach ($a as $name => &$value) {
                         if ($name == 'Expires' && !$value) {
