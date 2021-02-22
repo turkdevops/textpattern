@@ -59,7 +59,7 @@ $txp_user = empty($userInfo) ? null : $userInfo['name'];
 
 // Get all prefs as an array.
 $prefs = get_prefs(empty($userInfo['name']) ? '' : array('', $userInfo['name']));
-plug_privs(null, $userInfo);
+empty($userInfo) or plug_privs(null, $userInfo);
 
 // Add prefs to globals.
 extract($prefs);
@@ -209,6 +209,8 @@ if (txpinterface === 'css') {
 
     exit;
 }
+
+callback_event('pretext_end', '', 1);
 
 $txp_sections = safe_column(array('name'), 'txp_section');
 
@@ -428,7 +430,7 @@ function preText($store, $prefs = null)
                             }
                         }
 
-                        if (!isset($permlink_guess)) {
+                        if (!isset($permlink_guess) || !in_array($thisarticle['status'], array(STATUS_LIVE, STATUS_STICKY))) {
                             unset($thisarticle);
                             $is_404 = true;
                         } else {
@@ -1049,7 +1051,7 @@ function doArticles($atts, $iscustom, $thing = null)
     !empty($fields) or $fields = '*';
 
     // Do not paginate if we are on a custom list.
-    if (!$iscustom && !$issticky) {
+    if ($pageby === true || !$iscustom && !$issticky) {
         if ($pageby === true || empty($thispage) && (!isset($pageby) || $pageby)) {
             $grand_total = getCount(array('textpattern', !empty($groupby) ? "DISTINCT $groupby" : '*'), $where);
             $total = $grand_total - $offset;
@@ -1108,7 +1110,7 @@ function doArticles($atts, $iscustom, $thing = null)
         unset($txp_item['breakby']);
         $groupby = !$breakby || is_numeric(strtr($breakby, ' ,', '00')) ?
             false :
-            (preg_match('@<(?:'.TXP_PATTERN.'):@', $breakby) ? 1 : 2);
+            (preg_match('@<(?:'.TXP_PATTERN.'):@', $breakby) ? (int)php(null, null, 'form') : 2);
 
         while ($count++ <= $last) {
             global $thisarticle;
@@ -1119,11 +1121,10 @@ function doArticles($atts, $iscustom, $thing = null)
                 $thisarticle['is_last'] = ($count == $last);
                 $txp_item['count'] = isset($a['count']) ? $a['count'] : $count;
 
-                $newbreak = !$groupby ? $count :
-                    ($groupby === 1 ?
-                        parse($breakby, true, false) :
-                        parse_form($breakby)
-                    );
+                $newbreak = !$groupby ? $count : ($groupby === 1 ?
+                    parse($breakby, true, false) :
+                    parse_form($breakby)
+                );
             } else {
                 $newbreak = null;
             }

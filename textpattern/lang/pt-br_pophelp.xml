@@ -77,8 +77,8 @@
         ]]></item>
         <item id="create_author" title="Criar o autor"><![CDATA[<h2>Adicionar novo autor</h2>
 <p>Uma mensagem de boas-vindas e as instruções de login serão enviadas por e-mail para o novo autor.</p>
-        
- 
+
+
 ]]></item>
     </group>
 
@@ -237,8 +237,8 @@
         ]]></item>
         <item id="dns_lookup_fails" title="DNS falhou"><![CDATA[<h2>A pesquisa de DNS falhou</h2>
 <p>A URL do endereço do site não pode ser acessada .</p>
-        
- 
+
+
 ]]></item>
         <item id="file_uploads_disabled" title="O envio de arquivos está desabilitado"><![CDATA[<h2>Uploads de arquivos estâo desabilitados</h2>
 <p>A configuraç~~ao do servidor atual indica que uploads de arquivos estão desabilitados. Por favor altere <code>file_uploads</code> configurações em <code>php.ini</code> ou consulte o host do site pra assistencia.</p>
@@ -282,11 +282,11 @@
     </group>
 
     <group id="lang" title="">
-        <item id="get_textpack" title=""><![CDATA[]]></item>
+        <item id="get_textpack" title="Instalar Textpack"><![CDATA[]]></item>
     </group>
 
     <group id="link" title="">
-        <item id="link_description" title=""><![CDATA[]]></item>
+        <item id="link_description" title="Descrição"><![CDATA[]]></item>
         <item id="link_sort" title="Valor para ordenação"><![CDATA[]]></item>
         <item id="link_url" title="URL"><![CDATA[]]></item>
         <item id="timestamp_link" title="Data de publicação"><![CDATA[]]></item>
@@ -331,8 +331,8 @@
         <item id="comments_use_fat_textile" title=""><![CDATA[]]></item>
         <item id="custom_form_types" title=""><![CDATA[]]></item>
         <item id="custom_overview" title=""><![CDATA[]]></item>
-        <item id="dateformat" title=""><![CDATA[]]></item>
-        <item id="default_event" title=""><![CDATA[]]></item>
+        <item id="dateformat" title="Formato de data"><![CDATA[]]></item>
+        <item id="default_event" title="Tab default do admin"><![CDATA[]]></item>
         <item id="default_publish_status" title="Status de publicação padrão"><![CDATA[]]></item>
         <item id="doctype" title="Doctype"><![CDATA[]]></item>
         <item id="enable_dev_preview" title="Ativar visualização do tema de desenvolvimento?"><![CDATA[]]></item>
@@ -350,6 +350,7 @@
         <item id="module_pophelp" title="Exibir links de ajuda online da administração"><![CDATA[]]></item>
         <item id="never_display_email" title="Nunca mostar endereço de email?"><![CDATA[]]></item>
         <item id="override_emailcharset" title="No email usar ISO-8859-1 (UTF-8 por padrão)?"><![CDATA[]]></item>
+        <item id="override_form_types" title=""><![CDATA[]]></item>
         <item id="permlink_format" title="Padrão de URL  de link permanente"><![CDATA[]]></item>
         <item id="permlink_mode" title="Padrão de URL do artigo"><![CDATA[]]></item>
         <item id="plugin_cache_dir" title=""><![CDATA[]]></item>
@@ -358,14 +359,15 @@
         <item id="publish_expired_articles" title="Publicar artigo expirado?"><![CDATA[]]></item>
         <item id="publisher_email" title="Enviar informações de login a partir deste endereço de email"><![CDATA[]]></item>
         <item id="rss_how_many" title=""><![CDATA[]]></item>
+        <item id="secondpass" title=""><![CDATA[]]></item>
         <item id="send_lastmod" title=""><![CDATA[]]></item>
         <item id="show_comment_count_in_feed" title="Mostrar contador de comentários nos feeds?"><![CDATA[]]></item>
         <item id="site_slogan" title="Slogan do site"><![CDATA[]]></item>
         <item id="sitename" title=""><![CDATA[]]></item>
-        <item id="siteurl" title=""><![CDATA[]]></item>
+        <item id="siteurl" title="URL do site"><![CDATA[]]></item>
         <item id="skin_dir" title=""><![CDATA[]]></item>
         <item id="smtp_from" title=""><![CDATA[]]></item>
-        <item id="spam_blacklists" title=""><![CDATA[]]></item>
+        <item id="spam_blocklists" title=""><![CDATA[]]></item>
         <item id="syndicate_body_or_excerpt" title=""><![CDATA[]]></item>
         <item id="tempdir" title=""><![CDATA[]]></item>
         <item id="theme_name" title=""><![CDATA[]]></item>
@@ -374,7 +376,6 @@
         <item id="use_mail_on_feeds_id" title=""><![CDATA[]]></item>
         <item id="use_plugins" title="Usar plugins?"><![CDATA[]]></item>
         <item id="use_textile" title="Formatação padrão de texto"><![CDATA[]]></item>
-        <item id="override_form_types" title=""><![CDATA[]]></item>
     </group>
 
     <group id="section" title="">

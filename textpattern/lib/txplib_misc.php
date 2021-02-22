@@ -517,7 +517,7 @@ function plug_privs($pluggable = null, $user = null)
         if (is_array($pane)) {
             if (isset($pane[0])) {
                 if (!in_list($level, $pane[0])) {
-                    return;
+                    break;
                 }
 
                 unset($pane[0]);
@@ -526,13 +526,12 @@ function plug_privs($pluggable = null, $user = null)
             $pane = array('prefs.'.$pref => $pane);
         }
 
-        array_walk($pane, function (&$item) use ($level) {
-            if ($item === true) {
-                $item = $level;
-            }
-        });
-
         if (get_pref($pref)) {
+            array_walk($pane, function (&$item) use ($level) {
+                if ($item === true) {
+                    $item = $level;
+                }
+            });
             add_privs($pane);
         } else {
             add_privs(array_fill_keys(array_keys($pane), null));
@@ -562,7 +561,7 @@ function add_privs($res, $perm = '1')
 
     foreach ($res as $priv => $group) {
         if ($group === null) {
-            unset($txp_permissions[$priv]);
+            $txp_permissions[$priv] = null;
         } else {
             $group .= (empty($txp_permissions[$priv]) ? '' : ','.$txp_permissions[$priv]);
             $group = join(',', do_list_unique($group));
@@ -617,6 +616,41 @@ function the_privileged($res, $real = false)
 
     return $out;
 }
+
+/**
+ * Lists image types that can be safely uploaded.
+ *
+ * Returns different results based on the logged in user's privileges.
+ *
+ * @param   int         $type If set, validates the given value
+ * @return  mixed
+ * @package Image
+ * @since   4.6.0
+ * @example
+ * list($width, $height, $extension) = getimagesize('image');
+ * if ($type = get_safe_image_types($extension))
+ * {
+ *     echo "Valid image of {$type}.";
+ * }
+ */
+
+function get_safe_image_types($type = null)
+{
+    $extensions = array(IMAGETYPE_GIF => '.gif', 0 => '.jpeg', IMAGETYPE_JPEG => '.jpg', IMAGETYPE_PNG => '.png') +
+        (defined('IMAGETYPE_WEBP') ? array(IMAGETYPE_WEBP => '.webp') : array());
+    if (has_privs('image.create.trusted')) {
+        $extensions += array(IMAGETYPE_SWF => '.swf', IMAGETYPE_SWC => '.swf');
+    }
+
+    callback_event_ref('txp.image', 'types', 0, $extensions);
+
+    if (func_num_args() > 0) {
+        return !empty($extensions[$type]) ? $extensions[$type] : false;
+    }
+
+    return $extensions;
+}
+
 
 /**
  * Gets the dimensions of an image for a HTML &lt;img&gt; tag.
@@ -709,9 +743,17 @@ function imageFetchInfo($id = "", $name = "")
 
 function image_format_info($image)
 {
+    static $mimetypes;
+
     if (($unix_ts = @strtotime($image['date'])) > 0) {
         $image['date'] = $unix_ts;
     }
+
+    if (!isset($mimetypes)) {
+        $mimetypes = get_safe_image_types();
+    }
+
+    $image['mime'] = ($mime = array_search($image['ext'], $mimetypes)) !== false ? image_type_to_mime_type($mime) : '';
 
     return $image;
 }
@@ -2001,20 +2043,20 @@ function noWidow($str)
  * Checks if an IP is on a spam blocklist.
  *
  * @param   string       $ip     The IP address
- * @param   string|array $checks The checked lists. Defaults to 'spam_blacklists' preferences string
+ * @param   string|array $checks The checked lists. Defaults to 'spam_blocklists' preferences string
  * @return  string|bool The lists the IP is on or FALSE
  * @package Comment
  * @example
- * if (is_blacklisted('192.0.2.1'))
+ * if (is_blocklisted('192.0.2.1'))
  * {
  *     echo "'192.0.2.1' is on the blocklist.";
  * }
  */
 
-function is_blacklisted($ip, $checks = '')
+function is_blocklisted($ip, $checks = '')
 {
     if (!$checks) {
-        $checks = do_list_unique(get_pref('spam_blacklists'));
+        $checks = do_list_unique(get_pref('spam_blocklists'));
     }
 
     $rip = join('.', array_reverse(explode('.', $ip)));
@@ -2222,8 +2264,8 @@ function is_valid_email($address)
  * @param   string $to_address The receiver
  * @param   string $subject    The subject
  * @param   string $body       The message
- * @param   string $reply_to The reply to address
- * @return  bool   Returns FALSE when sending failed
+ * @param   string $reply_to   The reply to address
+ * @return  bool   FALSE when sending failed
  * @see     \Textpattern\Mail\Compose
  * @package Mail
  */
@@ -2257,8 +2299,8 @@ function txpMail($to_address, $subject, $body, $reply_to = null)
         extract($sender);
 
         try {
-            $message = Txp::get('\Textpattern\Mail\Compose')
-                ->from($email, $RealName)
+            $message = Txp::get('\Textpattern\Mail\Compose')->getDefaultAdapter();
+            $message->from($email, $RealName)
                 ->to($to_address)
                 ->subject($subject)
                 ->body($body);
@@ -3113,7 +3155,7 @@ function txp_tokenize($thing, $hash = null, $transform = null)
 
                 $sha = sha1($inside[$level]);
                 txp_fill_parsed($sha, $tags[$level], $order[$level], $count[$level], $else[$level]);
-    
+
                 $level--;
                 $tags[$level][] = array($outside[$level+1], $tag[$level][2], trim($tag[$level][4]), $inside[$level+1], $chunk);
                 $inside[$level] .= $inside[$level+1].$chunk;
@@ -3633,7 +3675,7 @@ function set_headers($headers = array('Content-Type' => 'text/html; charset=utf-
         if ((string)$header === '') {
             !$rewrite or header_remove($name && $name != 1 ? $name : null);
         } elseif ($header === true) {
-            if ($name == 1) {
+            if ($name == '' || $name == 1) {
                 $out = array_merge($out, $headers_low);
             } elseif (isset($headers_low[$name_low])) {
                 $out[$name_low] = $headers_low[$name_low];
@@ -3744,13 +3786,13 @@ function get_prefs($user = '')
 /**
  * Creates or updates a preference.
  *
- * @param   string $name       The name
- * @param   string $val        The value
- * @param   string $event      The section the preference appears in
- * @param   int    $type       Either PREF_CORE, PREF_PLUGIN, PREF_HIDDEN
- * @param   string $html       The HTML control type the field uses. Can take a custom function name
- * @param   int    $position   Used to sort the field on the Preferences panel
- * @param   bool   $is_private If PREF_PRIVATE, is created as a user pref
+ * @param   string       $name       The name
+ * @param   string       $val        The value
+ * @param   string|array $event      The section or array(section, family) the preference appears in
+ * @param   int          $type       Either PREF_CORE, PREF_PLUGIN, PREF_HIDDEN
+ * @param   string       $html       The HTML control type the field uses. Can take a custom function name
+ * @param   int          $position   Used to sort the field on the Preferences panel
+ * @param   bool         $is_private If PREF_PRIVATE, is created as a user pref
  * @return  bool FALSE on error
  * @package Pref
  * @example
@@ -3923,13 +3965,13 @@ function pref_exists($name, $user_name = null)
  *
  * When a string is created, will trigger a 'preference.create > done' callback event.
  *
- * @param   string      $name       The name
- * @param   string      $val        The value
- * @param   string      $event      The section the preference appears in
- * @param   int         $type       Either PREF_CORE, PREF_PLUGIN, PREF_HIDDEN
- * @param   string      $html       The HTML control type the field uses. Can take a custom function name
- * @param   int         $position   Used to sort the field on the Preferences panel
- * @param   string|bool $user_name  The user name, PREF_GLOBAL or PREF_PRIVATE
+ * @param   string       $name       The name
+ * @param   string       $val        The value
+ * @param   string|array $event      The section or array(section, family) the preference appears in
+ * @param   int          $type       Either PREF_CORE, PREF_PLUGIN, PREF_HIDDEN
+ * @param   string       $html       The HTML control type the field uses. Can take a custom function name
+ * @param   int          $position   Used to sort the field on the Preferences panel
+ * @param   string|bool  $user_name  The user name, PREF_GLOBAL or PREF_PRIVATE
  * @return  bool TRUE if the string exists, FALSE on error
  * @since   4.6.0
  * @package Pref
@@ -3958,12 +4000,20 @@ function create_pref($name, $val, $event = 'publish', $type = PREF_CORE, $html =
 
     $val = is_scalar($val) ? (string)$val : json_encode($val, TEXTPATTERN_JSON);
 
+    if (is_array($event)) {
+        $family = $event[1];
+        $event = $event[0];
+    } else {
+        $family = '';
+    }
+
     if (
         safe_insert(
             'txp_prefs',
             "name = '".doSlash($name)."',
             val = '".doSlash($val)."',
             event = '".doSlash($event)."',
+            family = '".doSlash($family)."',
             html = '".doSlash($html)."',
             type = ".intval($type).",
             position = ".intval($position).",
@@ -3973,7 +4023,7 @@ function create_pref($name, $val, $event = 'publish', $type = PREF_CORE, $html =
         return false;
     }
 
-    callback_event('preference.create', 'done', 0, compact('name', 'val', 'event', 'type', 'html', 'position', 'user_name'));
+    callback_event('preference.create', 'done', 0, compact('name', 'val', 'event', 'family', 'type', 'html', 'position', 'user_name'));
 
     return true;
 }
@@ -3987,14 +4037,14 @@ function create_pref($name, $val, $event = 'publish', $type = PREF_CORE, $html =
  *
  * When a string is updated, will trigger a 'preference.update > done' callback event.
  *
- * @param   string           $name       The update preference string's name
- * @param   string|null      $val        The value
- * @param   string|null      $event      The section the preference appears in
- * @param   int|null         $type       Either PREF_CORE, PREF_PLUGIN, PREF_HIDDEN
- * @param   string|null      $html       The HTML control type the field uses. Can take a custom function name
- * @param   int|null         $position   Used to sort the field on the Preferences panel
- * @param   string|bool|null $user_name  The updated string's owner, PREF_GLOBAL or PREF_PRIVATE
- * @return  bool             FALSE on error
+ * @param   string            $name       The update preference string's name
+ * @param   string|null       $val        The value
+ * @param   string|array|null $event      The section or array(section, family) the preference appears in
+ * @param   int|null          $type       Either PREF_CORE, PREF_PLUGIN, PREF_HIDDEN
+ * @param   string|null       $html       The HTML control type the field uses. Can take a custom function name
+ * @param   int|null          $position   Used to sort the field on the Preferences panel
+ * @param   string|bool|null  $user_name  The updated string's owner, PREF_GLOBAL or PREF_PRIVATE
+ * @return  bool FALSE on error
  * @since   4.6.0
  * @package Pref
  * @example
@@ -4027,14 +4077,21 @@ function update_pref($name, $val = null, $event = null, $type = null, $html = nu
         $val = is_scalar($val) ? (string)$val : json_encode($val, TEXTPATTERN_JSON);
     }
 
-    foreach (array('val', 'event', 'type', 'html', 'position') as $field) {
+    if (is_array($event)) {
+        $family = $event[1];
+        $event = $event[0];
+    } else {
+        $family = null;
+    }
+
+    foreach (array('val', 'event', 'family', 'type', 'html', 'position') as $field) {
         if ($$field !== null) {
             $set[] = $field." = '".doSlash($$field)."'";
         }
     }
 
     if ($set && safe_update('txp_prefs', join(', ', $set), join(" AND ", $where))) {
-        callback_event('preference.update', 'done', 0, compact('name', 'val', 'event', 'type', 'html', 'position', 'user_name'));
+        callback_event('preference.update', 'done', 0, compact('name', 'val', 'event', 'family', 'type', 'html', 'position', 'user_name'));
 
         return true;
     }
@@ -4613,7 +4670,7 @@ function permlinkurl_id($id)
         return permlinkurl($thisarticle);
     }
 
-    $rs = safe_row(
+    $rs = empty($id) ? array() : safe_row(
         "ID AS thisid, Section, Title, url_title, Category1, Category2, UNIX_TIMESTAMP(Posted) AS posted, UNIX_TIMESTAMP(Expires) AS expires",
         'textpattern',
         "ID = $id"
@@ -4642,7 +4699,20 @@ function permlinkurl_id($id)
 function permlinkurl($article_array, $hu = hu)
 {
     global $permlink_mode, $prefs, $permlinks, $production_status, $txp_sections;
-    static $internals = array('id', 's', 'context', 'pg', 'p'), $now = null;
+    static $internals = array('id', 's', 'context', 'pg', 'p'), $now = null,
+        $fields = array(
+            'thisid'    => null,
+            'id'        => null,
+            'title'     => null,
+            'url_title' => null,
+            'section'   => null,
+            'category1' => null,
+            'category2' => null,
+            'posted'    => null,
+            'uposted'   => null,
+            'expires'   => null,
+            'uexpires'  => null,
+        );
 
     if (isset($prefs['custom_url_func'])
         and is_callable($prefs['custom_url_func'])
@@ -4650,19 +4720,11 @@ function permlinkurl($article_array, $hu = hu)
         return $url;
     }
 
-    extract(lAtts(array(
-        'thisid'    => null,
-        'id'        => null,
-        'title'     => null,
-        'url_title' => null,
-        'section'   => null,
-        'category1' => null,
-        'category2' => null,
-        'posted'    => null,
-        'uposted'   => null,
-        'expires'   => null,
-        'uexpires'  => null,
-    ), array_change_key_case($article_array, CASE_LOWER), false));
+    if (empty($article_array)) {
+        return false;
+    }
+
+    extract(array_intersect_key(array_change_key_case($article_array, CASE_LOWER), $fields) + $fields);
 
     if (empty($thisid)) {
         $thisid = $id;
@@ -5197,98 +5259,85 @@ function get_context($context = true, $internals = array('id', 's', 'c', 'contex
 }
 
 /**
- * Assert article context error.
+ * Assert context error.
  */
 
-function assert_article()
+function assert_context($type = 'article', $throw = true)
 {
-    global $thisarticle;
+    global ${'this'.$type};
 
-    if (empty($thisarticle)) {
-        trigger_error(gTxt('error_article_context'));
-
-        return false;
+    if (empty(${'this'.$type})) {
+        if ($throw) {
+            throw new \Exception(gTxt("error_{$type}_context"));
+        } else {
+            return false;
+        }
     }
 
     return true;
 }
 
 /**
+ * Assert article context error.
+ */
+
+function assert_article($throw = true)
+{
+    return assert_context('article', $throw);
+}
+
+/**
  * Assert comment context error.
  */
 
-function assert_comment()
+function assert_comment($throw = true)
 {
-    global $thiscomment;
-
-    if (empty($thiscomment)) {
-        trigger_error(gTxt('error_comment_context'));
-    }
+    return assert_context('comment', $throw);
 }
 
 /**
  * Assert file context error.
  */
 
-function assert_file()
+function assert_file($throw = true)
 {
-    global $thisfile;
-
-    if (empty($thisfile)) {
-        trigger_error(gTxt('error_file_context'));
-    }
+    return assert_context('file', $throw);
 }
 
 /**
  * Assert image context error.
  */
 
-function assert_image()
+function assert_image($throw = true)
 {
-    global $thisimage;
-
-    if (empty($thisimage)) {
-        trigger_error(gTxt('error_image_context'));
-    }
+    return assert_context('image', $throw);
 }
 
 /**
  * Assert link context error.
  */
 
-function assert_link()
+function assert_link($throw = true)
 {
-    global $thislink;
-
-    if (empty($thislink)) {
-        trigger_error(gTxt('error_link_context'));
-    }
+    return assert_context('link', $throw);
 }
 
 /**
  * Assert section context error.
  */
 
-function assert_section()
+function assert_section($throw = true)
 {
-    global $thissection;
-
-    if (empty($thissection)) {
-        trigger_error(gTxt('error_section_context'));
-    }
+    return assert_context('section', $throw);
 }
 
 /**
  * Assert category context error.
  */
 
-function assert_category()
+function assert_category($throw = true)
 {
-    global $thiscategory;
-
-    if (empty($thiscategory)) {
-        trigger_error(gTxt('error_category_context'));
-    }
+    return assert_context('category', $throw);
 }
 
 /**
@@ -5879,6 +5928,28 @@ function get_mediatypes(&$textarray)
     }
 
     return $mimeTypes;
+}
+
+// -------------------------------------------------------------
+
+function txp_break($wraptag)
+{
+    switch (strtolower($wraptag)) {
+        case 'ul':
+        case 'ol':
+            return 'li';
+        case 'p':
+            return 'br';
+        case 'table':
+        case 'tbody':
+        case 'thead':
+        case 'tfoot':
+            return 'tr';
+        case 'tr':
+            return 'td';
+        default:
+            return ',';
+    }
 }
 
 /*** Polyfills ***/
