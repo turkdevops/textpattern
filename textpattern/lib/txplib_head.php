@@ -150,14 +150,14 @@ function pagetop($pagetitle = '', $message = '')
     ).
     script_js('textpattern.js', TEXTPATTERN_SCRIPT_URL).n;
 
-echo script_js("
+    echo script_js("
     $(function() {
         if (!textpattern.version || !'".txp_version."'.match(textpattern.version)) {
             alert('Please force-reload the page or clear your browser caches.')
         }
     })", false);
-echo $theme->html_head();
-echo $theme->html_head_custom();
+    echo $theme->html_head();
+    echo $theme->html_head_custom();
     callback_event('admin_side', 'head_end'); ?>
 </head>
 <body class="not-ready <?php echo $area; ?>" id="<?php echo $body_id; ?>">

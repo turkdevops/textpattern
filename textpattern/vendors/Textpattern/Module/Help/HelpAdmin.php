@@ -267,7 +267,7 @@ class HelpAdmin
                         $items[] = self::render_item($item);
                     }
                     $out2 .= doWrap($items, '', '')."</div>";
-                    $menu[] = tag($title, 'a', array('href' => "#group-{$id}") );
+                    $menu[] = tag($title, 'a', array('href' => "#group-{$id}"));
                 }
                 if ($key == 'item') {
                     $out2 .= self::render_item($children);
@@ -283,7 +283,7 @@ class HelpAdmin
         return $out.$out2;
     }
 
-    public static function render_item($item , $class='help-item')
+    public static function render_item($item, $class='help-item')
     {
         $id = $item->attributes()->id;
         $format = $item->attributes()->format;

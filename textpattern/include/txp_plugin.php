@@ -97,7 +97,8 @@ function plugin_list($message = '')
     $sort_sql = "$sort $dir";
     $switch_dir = ($dir == 'desc') ? 'asc' : 'desc';
 
-    $search = new Filter($event,
+    $search = new Filter(
+        $event,
         array(
             'name' => array(
                 'column' => 'txp_plugin.name',
@@ -157,7 +158,8 @@ function plugin_list($message = '')
     $searchBlock =
         n.tag(
             $search->renderForm('plugin', $search_render_options),
-            'div', array(
+            'div',
+            array(
                 'class' => 'txp-layout-4col-3span',
                 'id'    => $event.'_control',
             )
@@ -207,37 +209,80 @@ function plugin_list($message = '')
             tr(
                 hCell(
                     fInput('checkbox', 'select_all', 0, '', '', '', '', '', 'select_all'),
-                        '', ' class="txp-list-col-multi-edit" scope="col" title="'.gTxt('toggle_all_selected').'"'
+                    '',
+                    ' class="txp-list-col-multi-edit" scope="col" title="'.gTxt('toggle_all_selected').'"'
                 ).
                 column_head(
-                    'plugin', 'name', 'plugin', true, $switch_dir, '', '',
-                        (('name' == $sort) ? "$dir " : '').'txp-list-col-name'
+                    'plugin',
+                    'name',
+                    'plugin',
+                    true,
+                    $switch_dir,
+                    '',
+                    '',
+                    (('name' == $sort) ? "$dir " : '').'txp-list-col-name'
                 ).
                 column_head(
-                    'author', 'author', 'plugin', true, $switch_dir, '', '',
-                        (('author' == $sort) ? "$dir " : '').'txp-list-col-author'
+                    'author',
+                    'author',
+                    'plugin',
+                    true,
+                    $switch_dir,
+                    '',
+                    '',
+                    (('author' == $sort) ? "$dir " : '').'txp-list-col-author'
                 ).
                 column_head(
-                    'version', 'version', 'plugin', true, $switch_dir, '', '',
-                        (('version' == $sort) ? "$dir " : '').'txp-list-col-version'
+                    'version',
+                    'version',
+                    'plugin',
+                    true,
+                    $switch_dir,
+                    '',
+                    '',
+                    (('version' == $sort) ? "$dir " : '').'txp-list-col-version'
                 ).
                 column_head(
-                    'modified', 'modified', 'plugin', true, $switch_dir, '', '',
-                        (('modified' == $sort) ? "$dir " : '').'txp-list-col-modified'
-                ).
-                hCell(gTxt(
-                    'description'), '', ' class="txp-list-col-description" scope="col"'
-                ).
-                column_head(
-                    'active', 'status', 'plugin', true, $switch_dir, '', '',
-                        (('status' == $sort) ? "$dir " : '').'txp-list-col-status'
-                ).
-                column_head(
-                    'order', 'load_order', 'plugin', true, $switch_dir, '', '',
-                        (('load_order' == $sort) ? "$dir " : '').'txp-list-col-load-order'
+                    'modified',
+                    'modified',
+                    'plugin',
+                    true,
+                    $switch_dir,
+                    '',
+                    '',
+                    (('modified' == $sort) ? "$dir " : '').'txp-list-col-modified'
                 ).
                 hCell(
-                    gTxt('manage'), '', ' class="txp-list-col-manage" scope="col"'
+                    gTxt(
+                    'description'
+                ),
+                    '',
+                    ' class="txp-list-col-description" scope="col"'
+                ).
+                column_head(
+                    'active',
+                    'status',
+                    'plugin',
+                    true,
+                    $switch_dir,
+                    '',
+                    '',
+                    (('status' == $sort) ? "$dir " : '').'txp-list-col-status'
+                ).
+                column_head(
+                    'order',
+                    'load_order',
+                    'plugin',
+                    true,
+                    $switch_dir,
+                    '',
+                    '',
+                    (('load_order' == $sort) ? "$dir " : '').'txp-list-col-load-order'
+                ).
+                hCell(
+                    gTxt('manage'),
+                    '',
+                    ' class="txp-list-col-manage" scope="col"'
                 )
             ).
             n.tag_end('thead').
@@ -311,31 +356,49 @@ function plugin_list($message = '')
 
             $contentBlock .= tr(
                 td(
-                    fInput('checkbox', 'selected[]', $name), '', 'txp-list-col-multi-edit'
+                    fInput('checkbox', 'selected[]', $name),
+                    '',
+                    'txp-list-col-multi-edit'
                 ).
                 hCell(
-                    href($name, $edit_url), '', ' class="txp-list-col-name" scope="row"'
+                    href($name, $edit_url),
+                    '',
+                    ' class="txp-list-col-name" scope="row"'
                 ).
                 td(
-                    ($author_uri ? href($author, $a['author_uri'], array('rel' => 'external')) : $author), '', 'txp-list-col-author'
+                    ($author_uri ? href($author, $a['author_uri'], array('rel' => 'external')) : $author),
+                    '',
+                    'txp-list-col-author'
                 ).
                 td(
-                    $version, '', 'txp-list-col-version'
+                    $version,
+                    '',
+                    'txp-list-col-version'
                 ).
                 td(
-                    ($modified ? span(gTxt('yes'), array('class' => 'warning')) : ''), '', 'txp-list-col-modified'
+                    ($modified ? span(gTxt('yes'), array('class' => 'warning')) : ''),
+                    '',
+                    'txp-list-col-modified'
                 ).
                 td(
-                    $description, '', 'txp-list-col-description'
+                    $description,
+                    '',
+                    'txp-list-col-description'
                 ).
                 td(
-                    $statusDisplay, '', 'txp-list-col-status'
+                    $statusDisplay,
+                    '',
+                    'txp-list-col-status'
                 ).
                 td(
-                    $load_order, '', 'txp-list-col-load-order'
+                    $load_order,
+                    '',
+                    'txp-list-col-load-order'
                 ).
                 td(
-                    $manage_items, '', 'txp-list-col-manage'
+                    $manage_items,
+                    '',
+                    'txp-list-col-manage'
                 ),
                 $status ? ' class="active"' : ''
             );
@@ -466,7 +529,14 @@ function plugin_edit_form($name = '')
             hInput('page', gps('page')).
             hInput('search_method', gps('search_method')).
             hInput('crit', gps('crit')).
-            hInput('name', $name), '', '', 'post', 'edit-plugin-code', '', 'plugin_details');
+            hInput('name', $name),
+            '',
+            '',
+            'post',
+            'edit-plugin-code',
+            '',
+            'plugin_details'
+        );
 }
 
 /**
@@ -582,31 +652,39 @@ function plugin_verify($payload = array(), $txpPlugin = null)
                     'class' => 'language-php',
                     'dir'   => 'ltr',
                 )),
-                'pre', array('id' => 'preview-plugin')
+                'pre',
+                array('id' => 'preview-plugin')
             ).
-            ($help_source
+            (
+                $help_source
                 ? hed(gTxt('plugin_help'), 2).
                     tag(
                         tag($help_source, 'code', array(
                             'class' => 'language-markup',
                             'dir'   => 'ltr',
                         )),
-                        'pre', array('id' => 'preview-help')
+                        'pre',
+                        array('id' => 'preview-help')
                     )
                 : ''
             ).
-            ($textpack
+            (
+                $textpack
                 ? hed(tag('Textpack', 'bdi', array('dir' => 'ltr')), 2).
                     tag(
-                        tag($textpack, 'code', array('dir' => 'ltr')), 'pre', array('id' => 'preview-textpack')
+                        tag($textpack, 'code', array('dir' => 'ltr')),
+                        'pre',
+                        array('id' => 'preview-textpack')
                     )
                 : ''
             ).
-            ($data
+            (
+                $data
                 ? hed(gTxt('meta'), 2).
                     tag(
                         tag($data, 'code', array('dir' => 'ltr')),
-                        'pre', array('id' => 'preview-plugin')
+                        'pre',
+                        array('id' => 'preview-plugin')
                     )
                 : ''
             ).
@@ -614,8 +692,13 @@ function plugin_verify($payload = array(), $txpPlugin = null)
             $sub.
             sInput('plugin_install').
             eInput('plugin').
-            hInput('plugin-name', $plugin['name'])
-            , '', '', 'post', 'plugin-info', '', 'plugin_preview'
+            hInput('plugin-name', $plugin['name']),
+            '',
+            '',
+            'post',
+            'plugin-info',
+            '',
+            'plugin_preview'
         );
 
         return;
@@ -818,7 +901,9 @@ function plugin_form($existing_files = array())
         fInput('submit', 'install_new', gTxt('upload')).
         eInput('plugin').
         sInput('plugin_upload').
-        tInput().n, 'form', array(
+        tInput().n,
+        'form',
+        array(
             'class'        => 'plugin-file',
             'id'           => 'plugin_upload_form',
             'method'       => 'post',
@@ -832,14 +917,25 @@ function plugin_form($existing_files = array())
         tag(gTxt('import_from_disk'), 'label', array('for' => 'file-existing')).
         selectInput('filename', $existing_files, null, false, '', 'file-existing').
         fInput('submit', '', gTxt('import')),
-        '', '', 'post', 'assign-existing-form txp-async-update', '', 'assign_file'
+        '',
+        '',
+        'post',
+        'assign-existing-form txp-async-update',
+        '',
+        'assign_file'
     ) : '').
     form(
         tag(gTxt('install_plugin'), 'label', ' for="plugin-install"').popHelp('install_plugin').
         n.'<textarea class="code" id="plugin-install" name="plugin" cols="'.INPUT_LARGE.'" rows="'.TEXTAREA_HEIGHT_SMALL.'" dir="ltr" required="required"></textarea>'.
         fInput('submit', 'install_new', gTxt('upload')).
         eInput('plugin').
-        sInput('plugin_verify'), '', '', 'post', 'plugin-data', '', 'plugin_install_form'
+        sInput('plugin_verify'),
+        '',
+        '',
+        'post',
+        'plugin-data',
+        '',
+        'plugin_install_form'
     );
 }
 
