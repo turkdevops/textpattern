@@ -1191,7 +1191,7 @@ function tab($tabevent, $view, $tag = 'li')
 {
     $state = ($view == $tabevent) ? 'active' : '';
     $pressed = ($view == $tabevent) ? 'true' : 'false';
-    
+
     if (is_array($tabevent)) {
         list($tabevent, $label) = $tabevent + array(null, gTxt('text'));
     } else {
