@@ -2484,17 +2484,37 @@ function since($stamp)
     $diff = (time() - $stamp);
 
     if ($diff <= 3600) {
-        $mins = round($diff / 60);
-        $since = ($mins <= 1) ? ($mins == 1) ? '1 '.gTxt('minute') : gTxt('a_few_seconds') : "$mins ".gTxt('minutes');
+        $qty = round($diff / 60);
+
+        if ($qty < 1) {
+            $qty = '';
+            $period = gTxt('a_few_seconds');
+        } elseif ($qty == 1) {
+            $period = gTxt('minute');
+        } else {
+            $period = gTxt('minutes');
+        }
     } elseif (($diff <= 86400) && ($diff > 3600)) {
-        $hours = round($diff / 3600);
-        $since = ($hours <= 1) ? '1 '.gTxt('hour') : "$hours ".gTxt('hours');
+        $qty = round($diff / 3600);
+
+        if ($qty <= 1) {
+            $qty = 1;
+            $period = gTxt('hour');
+        } else {
+            $period = gTxt('hours');
+        }
     } elseif ($diff >= 86400) {
-        $days = round($diff / 86400);
-        $since = ($days <= 1) ? "1 ".gTxt('day') : "$days ".gTxt('days');
+        $qty = round($diff / 86400);
+
+        if ($qty <= 1) {
+            $qty = 1;
+            $period = gTxt('day');
+        } else {
+            $period = gTxt('days');
+        }
     }
 
-    return gTxt('ago', array('{since}' => $since));
+    return gTxt('ago', array('{qty}' => $qty, '{period}' => $period));
 }
 
 /**
@@ -2937,9 +2957,12 @@ function txp_get_contents($file)
 function get_files_content($dir, $ext)
 {
     $result = array();
-    foreach ((array)@scandir($dir) as $file) {
-        if (preg_match('/^(.+)\.'.$ext.'$/', $file, $match)) {
-            $result[$match[1]] = file_get_contents("$dir/$file");
+
+    if (is_readable($dir)) {
+        foreach ((array)scandir($dir) as $file) {
+            if (preg_match('/^(.+)\.'.$ext.'$/', $file, $match)) {
+                $result[$match[1]] = file_get_contents("$dir/$file");
+            }
         }
     }
 
@@ -3788,7 +3811,7 @@ function get_prefs($user = '')
  *
  * @param   string       $name       The name
  * @param   string       $val        The value
- * @param   string|array $event      The section or array(section, family) the preference appears in
+ * @param   string|array $event      The section or array(section, collection) the preference appears in
  * @param   int          $type       Either PREF_CORE, PREF_PLUGIN, PREF_HIDDEN
  * @param   string       $html       The HTML control type the field uses. Can take a custom function name
  * @param   int          $position   Used to sort the field on the Preferences panel
@@ -3805,6 +3828,7 @@ function get_prefs($user = '')
 function set_pref($name, $val, $event = 'publish', $type = PREF_CORE, $html = 'text_input', $position = 0, $is_private = PREF_GLOBAL)
 {
     global $prefs;
+
     $prefs[$name] = $val;
     $user_name = null;
 
@@ -3967,7 +3991,7 @@ function pref_exists($name, $user_name = null)
  *
  * @param   string       $name       The name
  * @param   string       $val        The value
- * @param   string|array $event      The section or array(section, family) the preference appears in
+ * @param   string|array $event      The section or array(section, collection) the preference appears in
  * @param   int          $type       Either PREF_CORE, PREF_PLUGIN, PREF_HIDDEN
  * @param   string       $html       The HTML control type the field uses. Can take a custom function name
  * @param   int          $position   Used to sort the field on the Preferences panel
@@ -4001,10 +4025,11 @@ function create_pref($name, $val, $event = 'publish', $type = PREF_CORE, $html =
     $val = is_scalar($val) ? (string)$val : json_encode($val, TEXTPATTERN_JSON);
 
     if (is_array($event)) {
-        $family = $event[1];
+        $collection = $event[1];
+        $collectionSet = ", collection = '".doSlash($collection)."'";
         $event = $event[0];
     } else {
-        $family = '';
+        $collection = $collectionSet = '';
     }
 
     if (
@@ -4012,8 +4037,7 @@ function create_pref($name, $val, $event = 'publish', $type = PREF_CORE, $html =
             'txp_prefs',
             "name = '".doSlash($name)."',
             val = '".doSlash($val)."',
-            event = '".doSlash($event)."',
-            family = '".doSlash($family)."',
+            event = '".doSlash($event)."'".$collectionSet.",
             html = '".doSlash($html)."',
             type = ".intval($type).",
             position = ".intval($position).",
@@ -4023,7 +4047,7 @@ function create_pref($name, $val, $event = 'publish', $type = PREF_CORE, $html =
         return false;
     }
 
-    callback_event('preference.create', 'done', 0, compact('name', 'val', 'event', 'family', 'type', 'html', 'position', 'user_name'));
+    callback_event('preference.create', 'done', 0, compact('name', 'val', 'event', 'collection', 'type', 'html', 'position', 'user_name'));
 
     return true;
 }
@@ -4039,7 +4063,7 @@ function create_pref($name, $val, $event = 'publish', $type = PREF_CORE, $html =
  *
  * @param   string            $name       The update preference string's name
  * @param   string|null       $val        The value
- * @param   string|array|null $event      The section or array(section, family) the preference appears in
+ * @param   string|array|null $event      The section or array(section, collection) the preference appears in
  * @param   int|null          $type       Either PREF_CORE, PREF_PLUGIN, PREF_HIDDEN
  * @param   string|null       $html       The HTML control type the field uses. Can take a custom function name
  * @param   int|null          $position   Used to sort the field on the Preferences panel
@@ -4077,21 +4101,24 @@ function update_pref($name, $val = null, $event = null, $type = null, $html = nu
         $val = is_scalar($val) ? (string)$val : json_encode($val, TEXTPATTERN_JSON);
     }
 
+    $cols = array('val', 'event', 'type', 'html', 'position');
+
     if (is_array($event)) {
-        $family = $event[1];
+        $collection = $event[1];
         $event = $event[0];
+        $cols[] = 'collection';
     } else {
-        $family = null;
+        $collection = null;
     }
 
-    foreach (array('val', 'event', 'family', 'type', 'html', 'position') as $field) {
+    foreach ($cols as $field) {
         if ($$field !== null) {
             $set[] = $field." = '".doSlash($$field)."'";
         }
     }
 
     if ($set && safe_update('txp_prefs', join(', ', $set), join(" AND ", $where))) {
-        callback_event('preference.update', 'done', 0, compact('name', 'val', 'event', 'family', 'type', 'html', 'position', 'user_name'));
+        callback_event('preference.update', 'done', 0, compact('name', 'val', 'event', 'collection', 'type', 'html', 'position', 'user_name'));
 
         return true;
     }
@@ -4553,8 +4580,9 @@ function pagelinkurl($parts, $inherit = array(), $url_mode = null)
         return permlinkurl_id($parts['id']);
     }
 
+    $hu = isset($prefs['url_base']) ? $prefs['url_base'] : hu;
     $keys = $parts;
-    empty($inherit) or $keys += $inherit;
+    !is_array($inherit) or $keys += $inherit;
     empty($txp_context) or $keys += $txp_context;
     unset($keys['id']);
 
@@ -4593,19 +4621,19 @@ function pagelinkurl($parts, $inherit = array(), $url_mode = null)
     }
 
     if ($url_mode == 'messy') {
-        $url = hu.'index.php';
+        $url = $hu.'index.php';
     } else {
         // All clean URL modes use the same schemes for list pages.
-        $url = hu;
+        $url = $hu;
 
         if (!empty($keys['rss'])) {
-            $url = hu.'rss/';
+            $url = $hu.'rss/';
             unset($keys['rss']);
         } elseif (!empty($keys['atom'])) {
-            $url = hu.'atom/';
+            $url = $hu.'atom/';
             unset($keys['atom']);
         } elseif (!empty($keys['s'])) {
-            $url = hu.urlencode($keys['s']).'/';
+            $url = $hu.urlencode($keys['s']).'/';
             unset($keys['s']);
             if (!empty($keys['c']) && ($url_mode == 'section_category_title' || $url_mode == 'breadcrumb_title')) {
                 $catpath = $url_mode == 'breadcrumb_title' ?
@@ -4619,18 +4647,18 @@ function pagelinkurl($parts, $inherit = array(), $url_mode = null)
             }
         } elseif (!empty($keys['author']) && $url_mode != 'year_month_day_title') {
             $ct = empty($keys['context']) ? '' : strtolower(urlencode(gTxt($keys['context'].'_context'))).'/';
-            $url = hu.strtolower(urlencode(gTxt('author'))).'/'.$ct.urlencode($keys['author']).'/';
+            $url = $hu.strtolower(urlencode(gTxt('author'))).'/'.$ct.urlencode($keys['author']).'/';
             unset($keys['author'], $keys['context']);
         } elseif (!empty($keys['c']) && $url_mode != 'year_month_day_title') {
             $ct = empty($keys['context']) ? '' : strtolower(urlencode(gTxt($keys['context'].'_context'))).'/';
-            $url = hu.strtolower(urlencode(gTxt('category'))).'/'.$ct;
+            $url = $hu.strtolower(urlencode(gTxt('category'))).'/'.$ct;
             $catpath = $url_mode == 'breadcrumb_title' ?
                 array_column(getRootPath($keys['c'], empty($keys['context']) ? 'article' : $keys['context']), 'name') :
                 array($keys['c']);
             $url .= implode('/', array_map('urlencode', array_reverse($catpath))).'/';
             unset($keys['c'], $keys['context']);
         } elseif (!empty($keys['month']) && is_date($keys['month'])) {
-            $url = hu.implode('/', explode('-', urlencode($keys['month']))).'/';
+            $url = $hu.implode('/', explode('-', urlencode($keys['month']))).'/';
             unset($keys['month']);
         }
     }
@@ -4696,9 +4724,9 @@ function permlinkurl_id($id)
  * ));
  */
 
-function permlinkurl($article_array, $hu = hu)
+function permlinkurl($article_array, $hu = null)
 {
-    global $permlink_mode, $prefs, $permlinks, $production_status, $txp_sections;
+    global $permlink_mode, $prefs, $permlinks, $txp_sections;
     static $internals = array('id', 's', 'context', 'pg', 'p'), $now = null,
         $fields = array(
             'thisid'    => null,
@@ -4725,6 +4753,7 @@ function permlinkurl($article_array, $hu = hu)
     }
 
     extract(array_intersect_key(array_change_key_case($article_array, CASE_LOWER), $fields) + $fields);
+    isset($hu) or $hu = isset($prefs['url_base']) ? $prefs['url_base'] : hu;
 
     if (empty($thisid)) {
         $thisid = $id;
@@ -4750,7 +4779,7 @@ function permlinkurl($article_array, $hu = hu)
 
     if (empty($prefs['publish_expired_articles']) &&
         !empty($expires) &&
-        $production_status != 'live' &&
+        $prefs['production_status'] != 'live' &&
         txpinterface == 'public' &&
         (is_numeric($expires) ? $expires < time()
             : (isset($uexpires) ? $uexpires < time()
