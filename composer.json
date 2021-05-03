@@ -23,7 +23,7 @@
     }
   ],
   "config": {
-     "vendor-dir": "textpattern/vendors"
+    "vendor-dir": "textpattern/vendors"
   },
   "require": {
     "php": ">=5.6.0",
